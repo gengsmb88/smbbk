@@ -2,9 +2,8 @@
 namespace Smbbk\Id\Dana;
 
 class Dana {
-	const api_url 					= 'http://206.189.42.145:9201';
-    const heusc_api 				= 'http://206.189.42.145:9201';
-	//const heusc_api 				= 'https://apigw01.aws.ovo.id';
+	const api_url 					= 'http://api-dana.app:9201';
+    const heusc_api 				= 'http://api-dana.app:9201';
     const os_name 					= 'iOS';
     const os_version 				= '14.4.2';
     const app_id 					= 'P72RVSPSF61F72ELYLZI';
