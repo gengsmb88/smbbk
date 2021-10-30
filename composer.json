@@ -1,0 +1,7 @@
+{
+	"name"				: "SMB BK",
+	"description"		: "Litle libraries for BK App",
+	"require"			: {
+		"php"				: ">=7.4"
+	}
+}
