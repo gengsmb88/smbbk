@@ -8,8 +8,8 @@ class Ovo {
     const os_name 					= 'iOS';
     const os_version 				= '14.4.2';
     const app_id 					= 'P72RVSPSF61F72ELYLZI';
-    const app_version 				= '3.37.0';
-    const user_agent 				= 'OVO/16820 CFNetwork/1220.1 Darwin/20.3.0';
+    const app_version 				= '3.43.0';
+    const user_agent 				= 'OVO/17767 CFNetwork/1220.1 Darwin/20.3.0';
     const action_mark 				= 'OVO Cash';
 	const client_id					= "ovo_ios";
 	/*
@@ -298,6 +298,34 @@ class Ovo {
 		return false;
 		
 	}
+	public function generateTrxId($amount, $action_mark = "OVO Cash") {
+        $field = array(
+            'amount' => $amount,
+            'actionMark' => $action_mark
+        );
+        
+        return self::request(self::api_url . '/v1.0/api/auth/customer/genTrxId', $field, $this->headers());
+    }
+	protected function generateSignature($amount, $trx_id) {
+        return sha1(join('||', array(
+            $trx_id,
+            $amount,
+            $this->device_id
+        )));
+    }
+    public function unlockAndValidateTrxId($amount, $trx_id, $security_code) {
+        $field = array(
+            'trxId' => $trx_id,
+            'securityCode' => $security_code,
+            'signature' => $this->generateSignature($amount, $trx_id)
+        );
+        
+        return self::request(self::api_url . '/v1.0/api/auth/customer/unlockAndValidateTrxId', $field, $this->headers());
+    }
+	
+	
+	
+	
 	private function transfer_generate_transaction_id(Array $input_params, String $instance_type = 'wallet') {
 		$transfer_instance = 'ovo';
 		// Check Input Params
@@ -336,7 +364,7 @@ class Ovo {
 			case 'wallet':
 			case 'ovo':
 			default:
-				if (!preg_match('/(^0([8|9])+([1|2|3|4|5|8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
+				if (!preg_match('/(^0([8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
 					return new ResponseException("Invalid phone number.");
 				} else {
 					try {
@@ -463,7 +491,7 @@ class Ovo {
 				return new ResponseException(sprintf("Transfer minimum is %s IDR", number_format(self::$transfer_minimum[$transfer_instance], 2)));
 			}
 			$input_params['transfer_number'] = (is_numeric($input_params['transfer_number']) ? sprintf("%s", $input_params['transfer_number']) : '');
-			if (!preg_match('/(^0([8|9])+([1|2|3|4|5|8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
+			if (!preg_match('/(^0([8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
 				return false;
 			}
 		}
