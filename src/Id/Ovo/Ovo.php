@@ -103,7 +103,17 @@ class Ovo {
 	public function get_ovoid_headers() {
 		return $this->headers;
 	}
-	
+	public function generate_authorized_headers($token = '') {
+		$token = (is_string($token) ? sprintf("%s", $token) : '');
+		if (strlen($token) == 0) {
+			return false;
+		}
+		$this->authToken = $token;
+		$this->headers['Authorization'] = sprintf("%s", $this->authToken);
+		$this->headers['Os-Version'] = sprintf("%s", self::os_version);
+		$this->headers['Client-Id'] = sprintf("%s", self::client_id);
+		return $this->headers;
+	}
 	##
 	# Get Account Number
 	##
