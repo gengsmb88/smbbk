@@ -102,7 +102,12 @@ class Ovo {
 	
 	
 	
-	
+	##
+	# Get Account Number
+	##
+	public function get_acc_num() {
+		return $this->acc_num;
+	}
 	
 	
 	
