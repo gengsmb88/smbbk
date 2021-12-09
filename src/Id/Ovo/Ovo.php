@@ -100,7 +100,9 @@ class Ovo {
 		$this->push_notif_id = $push_notif_id;
 	}
 	
-	
+	public function get_ovoid_headers() {
+		return $this->headers;
+	}
 	
 	##
 	# Get Account Number
