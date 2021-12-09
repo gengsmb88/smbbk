@@ -89,7 +89,8 @@ class Ovo {
 			'App-Version'			=> self::app_version,
 			'Os'					=> self::os_name,
 			'Os-Version'			=> self::os_version,
-			'User-Agent'			=> self::user_agent
+			'User-Agent'			=> self::user_agent,
+			'Accept'				=> '*/*'
         );
         return $this->headers;
 	}
@@ -103,15 +104,19 @@ class Ovo {
 	public function get_ovoid_headers() {
 		return $this->headers;
 	}
-	public function generate_authorized_headers($token = '') {
+	public function generate_authorized_headers($token = '', $device_id = null) {
 		$token = (is_string($token) ? sprintf("%s", $token) : '');
 		if (strlen($token) == 0) {
 			return false;
+		}
+		if (!isset($device_id)) {
+			$device_id = $this->device_id;
 		}
 		$this->authToken = $token;
 		$this->headers['Authorization'] = sprintf("%s", $this->authToken);
 		$this->headers['Os-Version'] = sprintf("%s", self::os_version);
 		$this->headers['Client-Id'] = sprintf("%s", self::client_id);
+		$this->headers['Device-Id'] = sprintf("%s", $device_id);
 		return $this->headers;
 	}
 	##
@@ -123,15 +128,19 @@ class Ovo {
 	
 	
 	
-	private function set_authorization($token = '') {
+	private function set_authorization($token = '', $device_id = null) {
 		$token = (is_string($token) ? sprintf("%s", $token) : '');
 		if (strlen($token) == 0) {
 			return false;
+		}
+		if (!isset($device_id)) {
+			$device_id = $this->device_id;
 		}
 		$this->authToken = $token;
 		$this->headers['Authorization'] = sprintf("%s", $this->authToken);
 		$this->headers['Os-Version'] = sprintf("%s", self::os_version);
 		$this->headers['Client-Id'] = sprintf("%s", self::client_id);
+		$this->headers['Device-Id'] = sprintf("%s", $device_id);
 		return $this->headers;
 	}
 
