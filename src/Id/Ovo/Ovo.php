@@ -4,6 +4,7 @@ namespace Smbbk\Id\Ovo;
 class Ovo {
 	const api_url 					= 'https://api.ovo.id';
     const heusc_api 				= 'https://agw.heusc.id';
+	const api_agw					= 'https://agw.ovo.id';
 	//const heusc_api 				= 'https://apigw01.aws.ovo.id';
     const os_name 					= 'iOS';
     const os_version 				= '14.4.2';
@@ -244,6 +245,26 @@ class Ovo {
 		}
 		return false;
 	}
+	public function get_ovo_profile_email(String $token, Array $session_params, String $mobilephone = '') {
+		$this->set_authorization($token);
+		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
+			return false;
+		}
+		$url_api = sprintf("%s/%s", self::api_agw, 'v3/user/accounts/email');
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		$this->set_curl_body(FALSE);
+		
+		try {
+			$curl_collect = $this->curlexec();
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		if (isset($curl_collect['http_body'])) {
+			$http_body = json_decode($curl_collect['http_body']);
+			return $http_body;
+		}
+		return false;
+	}
 	public function get_ovo_profile_data(String $token, Array $session_params, String $mobilephone = '') {
 		$this->set_authorization($token);
 		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
@@ -267,6 +288,7 @@ class Ovo {
 		}
 		return false;
     }
+	
 	
 	
 	// Get Transaction History
