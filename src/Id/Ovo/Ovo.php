@@ -9,7 +9,7 @@ class Ovo {
     const os_name 					= 'iOS';
     const os_version 				= '14.4.2';
     const app_id 					= 'P72RVSPSF61F72ELYLZI';
-    const app_version 				= '3.43.0';
+    const app_version 				= '3.49.0';
     const user_agent 				= 'OVO/17767 CFNetwork/1220.1 Darwin/20.3.0';
     const action_mark 				= 'OVO Cash';
 	const client_id					= "ovo_ios";
@@ -429,7 +429,7 @@ class Ovo {
 					if (sprintf("%s", trim($receiver_data->accountNo)) === sprintf("%s", $input_params['transfer_number'])) {
 						try {
 							$post_params = array(
-								'actionMark'			=> self::$transfer_action_mark[$transfer_instance],
+								'actionMark'			=> self::$transfer_action_mark[$instance_type],
 								'amount'				=> sprintf("%d", $input_params['transfer_amount']),
 							);
 							$generated_transfer_id = $this->make_transaction_id_bank($post_params);
@@ -456,6 +456,7 @@ class Ovo {
 								'actionMark'			=> self::$transfer_action_mark[$transfer_instance],
 								'amount'				=> sprintf("%d", $input_params['transfer_amount']),
 							);
+							
 							$generated_transfer_id = $this->make_transaction_id_wallet($post_params);
 							if (!isset($generated_transfer_id->trxId)) {
 								return new ResponseException("Unpexted response from api-server.");
@@ -644,7 +645,8 @@ class Ovo {
 			case 'validate':
 			default:
 				try {
-					$transaction_data = $this->transfer_generate_transaction_id($input_params, 'wallet');
+					// $transaction_data = $this->transfer_generate_transaction_id($input_params, 'wallet');
+					$transaction_data = $this->transfer_generate_transaction_id($input_params, 'cash_ovo');
 				} catch (Exception $ex) {
 					throw new ResponseException("Cannot generate transaction-id with exception: {$ex->getMessage()}.");
 				}
