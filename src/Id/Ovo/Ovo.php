@@ -90,7 +90,8 @@ class Ovo {
 			'Os'					=> self::os_name,
 			'Os-Version'			=> self::os_version,
 			'User-Agent'			=> self::user_agent,
-			'Accept'				=> '*/*'
+			'Accept'				=> '*/*',
+			'Accept-Encoding'		=> 'deflate',
         );
         return $this->headers;
 	}
