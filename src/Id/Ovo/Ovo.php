@@ -644,9 +644,14 @@ class Ovo {
 			break;
 			case 'validate':
 			default:
+				$wallet_transfer_actionmark = 'wallet';
+				if (isset($input_params['transfer_action_mark']) && is_string($input_params['transfer_action_mark'])) {
+					$input_params['transfer_action_mark'] = strtolower($input_params['transfer_action_mark']);
+					$wallet_transfer_actionmark = $input_params['transfer_action_mark'];
+				}
 				try {
 					// $transaction_data = $this->transfer_generate_transaction_id($input_params, 'wallet');
-					$transaction_data = $this->transfer_generate_transaction_id($input_params, 'cash_ovo');
+					$transaction_data = $this->transfer_generate_transaction_id($input_params, $wallet_transfer_actionmark);
 				} catch (Exception $ex) {
 					throw new ResponseException("Cannot generate transaction-id with exception: {$ex->getMessage()}.");
 				}
