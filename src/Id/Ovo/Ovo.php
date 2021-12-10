@@ -44,6 +44,7 @@ class Ovo {
 	
     private $authToken, $uniqueId, $sessionId, $pin, $idKey;
 	private static $transfer_action_mark = [
+		'wallet'		=> 'trf_ovo',
 		'ovo'			=> 'trf_ovo',
 		'bank'			=> 'trf_other_bank',
 		'cash_ovo'		=> 'OVO Cash',
@@ -355,7 +356,7 @@ class Ovo {
 			return false;
 		} else {
 			$transfer_instance = (is_string($input_params['transfer_instance']) ? strtolower(trim($input_params['transfer_instance'])) : '');
-			if (!in_array($transfer_instance, ['ovo', 'bank'])) {
+			if (!in_array($transfer_instance, ['wallet', 'ovo', 'bank'])) {
 				return false;
 			}
 		}
@@ -498,7 +499,7 @@ class Ovo {
 			return false;
 		} else {
 			$transfer_instance = (is_string($input_params['transfer_instance']) ? strtolower(trim($input_params['transfer_instance'])) : '');
-			if (!in_array($transfer_instance, ['ovo', 'bank'])) {
+			if (!in_array($transfer_instance, ['wallet', 'ovo', 'bank'])) {
 				return false;
 			}
 		}
@@ -680,7 +681,7 @@ class Ovo {
 			return false;
 		} else {
 			$transfer_instance = (is_string($input_params['transfer_instance']) ? strtolower(trim($input_params['transfer_instance'])) : 'bank');
-			if (!in_array($transfer_instance, ['ovo', 'bank'])) {
+			if (!in_array($transfer_instance, ['wallet', 'ovo', 'bank'])) {
 				return false;
 			}
 		}
