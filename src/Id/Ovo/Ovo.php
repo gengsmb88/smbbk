@@ -91,7 +91,7 @@ class Ovo {
 			'Os-Version'			=> self::os_version,
 			'User-Agent'			=> self::user_agent,
 			'Accept'				=> '*/*',
-			'Accept-Encoding'		=> 'deflate',
+			'Accept-Encoding'		=> 'deflate, gzip',
         );
         return $this->headers;
 	}
