@@ -337,7 +337,7 @@ class Dana {
 			case 'wallet':
 			case 'ovo':
 			default:
-				if (!preg_match('/(^0([8|9])+([1|2|3|4|5|8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
+				if (!preg_match('/(^0([8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
 					return new ResponseException("Invalid phone number.");
 				} else {
 					try {
