@@ -12,11 +12,11 @@ class Gopay {
     const appId 					= 'com.go-jek.ios';
     const phoneModel 				= 'Apple, iPhone XS Max';
     const phoneMake 				= 'Apple';
-    const osDevice 					= 'iOS, 14.2.3';
+    const osDevice 					= 'iOS 14.8.1';
     const xPlatform 				= 'iOS';
-    const appVersion 				= '4.23.0';
+    const appVersion 				= '4.34.0';
     const gojekCountryCode 			= 'ID';
-    const userAgent 				= 'Gojek/4.23.0 (com.go-jek.ios; build:15832944; iOS 14.2.3) Alamofire/4.23.0';
+    const userAgent 				= 'Gojek/4.34.0 (com.go-jek.ios; build:22264304; iOS 14.8.1) NetworkSDK/1.1.0';
 	private static $api_consumer 	= 'customer';
 	private $headers 				= array();
 	protected $cookies_path			= '';
