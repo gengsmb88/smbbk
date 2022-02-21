@@ -339,8 +339,34 @@ class Linkaja {
 		}
 		return $http_data;
 	}
-	
-	
+	// Get Informasi Mutasi
+	public function get_informasi_mutasi(String $token, Array $session_params, Array $pagination_params = ['page' => 1, 'limit' => 100]) {
+		$this->set_authorization($token);
+		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
+			return false;
+		}
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		$pagination_params = [
+			'page'					=> (is_numeric($pagination_params['page']) ? (int)$pagination_params['page'] : 1),
+			'limit'					=> (is_numeric($pagination_params['limit']) ? (int)$pagination_params['limit'] : 100),
+		];
+		
+		$url_api = sprintf("%s/%s?msisdn=%s&limit=%d&offset=0", 
+			self::api_url, 
+			'complete',
+			$this->acc_num,
+			$pagination_params['limit']
+		);
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_linkaja_gateway_server('GET', $url_api, []);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		return $http_data;
+		
+	}
 	
 	
 	
