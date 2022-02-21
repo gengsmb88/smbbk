@@ -206,7 +206,7 @@ class Linkaja {
 		$this->headers['x-uniqueid'] = $this->uniqueId;
 		$this->headers['x-session-id'] = $this->sessionId;
 		
-		$url_api = sprintf("%s/%s?msisdn=%s&pin=&s", 
+		$url_api = sprintf("%s/%s?msisdn=%s&pin=%s", 
 			self::api_url, 
 			'otp',
 			$this->acc_num,
@@ -218,13 +218,127 @@ class Linkaja {
 		} catch (Exception $ex) {
 			throw $ex;
 		}
+		
+		if (!isset($http_data->status) || !isset($http_data->refId) || !isset($http_data->data->content)) {
+			$http_response = [
+				'status'			=> false,
+				'data'				=> false,
+				'error'				=> (isset($http_data->message) ? $http_data->message : $http_data),
+			];
+		} else {
+			$http_response = [
+				'status'			=> true,
+				'data'				=> $http_data,
+				'error'				=> false,
+			];
+		}
+		
+		return $http_response;
+	}
+	// Verify OTP Code
+	public function verify_otp_code(String $otp_pin, String $otp_code = '') {
+		if (empty($otp_pin) || empty($otp_code)) {
+			return false;
+		}
+		if (!is_numeric($otp_pin)) {
+			return false;
+		}
+		if (!is_numeric($otp_code)) {
+			return false;
+		}
+		$otp_params = [
+			'pin'		=> strval($otp_pin),
+			'code'		=> strval($otp_code)
+		];
+		
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		
+		$url_api = sprintf("%s/%s?msisdn=%s&otp=%s", 
+			self::api_url, 
+			'verifyOtp',
+			$this->acc_num,
+			$otp_code
+		);
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_linkaja_gateway_server('GET', $url_api, []);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		
+		if (!isset($http_data->status) || !isset($http_data->data->auth)) {
+			$http_response = [
+				'status'			=> false,
+				'data'				=> false,
+				'error'				=> (isset($http_data->message) ? $http_data->message : $http_data),
+			];
+		} else {
+			$http_response = [
+				'status'			=> true,
+				'data'				=> $http_data,
+				'error'				=> false,
+			];
+		}
+		return $http_response;
+	}
+	//-----------------------------------------------------------------------------------------------------------------------
+	public function get_account_data(String $token, Array $session_params = array()) {
+		$this->set_authorization($token);
+		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
+			return false;
+		}
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		
+		$url_api = sprintf("%s/%s?msisdn=%s", 
+			self::api_url, 
+			'profile',
+			$this->acc_num
+		);
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_linkaja_gateway_server('GET', $url_api, []);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		if (!isset($http_data->status) || !isset($http_data->data->msisdn)) {
+			$http_response = [
+				'status'			=> false,
+				'data'				=> false,
+				'error'				=> (isset($http_data->message) ? $http_data->message : $http_data),
+			];
+		} else {
+			$http_response = [
+				'status'			=> true,
+				'data'				=> $http_data,
+				'error'				=> false,
+			];
+		}
+		return $http_response;
+	}
+	// Get Informasi Saldo
+	public function get_informasi_saldo($token = '', $session_params = array()) {
+		$this->set_authorization($token);
+		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
+			return false;
+		}
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		
+		$url_api = sprintf("%s/%s?msisdn=%s", 
+			self::api_url, 
+			'balance',
+			$this->acc_num
+		);
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_linkaja_gateway_server('GET', $url_api, []);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
 		return $http_data;
 	}
-	
-	
-	
-	
-	
 	
 	
 	
