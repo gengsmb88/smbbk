@@ -11,6 +11,7 @@ class Linkaja {
     const action_mark 				= 'Linkaja Wallet';
 	const client_id					= "linkaja_ios";
 	const app_authentication		= 'aWYgKCRjb2xsZWN0RGF0YVsndmlld190eXBlJ10gPT0gJ2FjdGlvbicpIHs';
+	const app_augipt				= 'U1VNTUJNDXC520SDJIREFZS7O092HYEKFZU1U1VNNSDCPEQ624SREFZ';
 	/*
     @ Push Notification ID (SHA256 Hash)
     @ Generated from self::generateRandomSHA256();
@@ -84,13 +85,14 @@ class Linkaja {
 	}
 	private function set_header_auth() {
 		$this->headers = array(
-			'Content-Type'			=> 'application/x-www-form-urlencoded',
-			'App-Id'				=> self::app_id,
-			'App-Version'			=> self::app_version,
-			'Os'					=> self::os_name,
-			'Os-Version'			=> self::os_version,
-			'User-Agent'			=> self::user_agent,
-			'Authentication'		=> 'Bearer ' . self::app_authentication,
+			'Content-Type'					=> 'application/x-www-form-urlencoded',
+			'App-Id'						=> self::app_id,
+			'App-Version'					=> self::app_version,
+			'Os'							=> self::os_name,
+			'Os-Version'					=> self::os_version,
+			'User-Agent'					=> self::user_agent,
+			'Authentication'				=> 'Bearer ' . self::app_authentication,
+			'X-Augipt-Authorization'		=> self::app_augipt
         );
         return $this->headers;
 	}
