@@ -372,10 +372,109 @@ class Linkaja {
 	
 	
 	
+	// TRANSFER
+	public function transfer_set_wallet(Array $input_params, String $transfer_step = 'validate') {
+		$transfer_instance = 'wallet';
+		$transfer_step = (isset($transfer_step) ? strtolower($transfer_step) : 'validate');
+		if (!in_array($transfer_step, ['validate', 'process', 'unlock'])) {
+			$transfer_step = 'validate';
+		}
+		// Check Input Params
+		if (!isset($input_params['transfer_instance'])) {
+			return false;
+		} else {
+			$transfer_instance = (is_string($input_params['transfer_instance']) ? strtolower(trim($input_params['transfer_instance'])) : '');
+			if (!in_array($transfer_instance, ['wallet', 'bank'])) {
+				return false;
+			}
+		}
+		if (!isset($input_params['transfer_amount']) || !isset($input_params['transfer_number'])) {
+			return false;
+		} else {
+			$input_params['transfer_amount'] = (is_numeric($input_params['transfer_amount']) ? sprintf("%d", $input_params['transfer_amount']) : 0);
+			if ($input_params['transfer_amount'] == 0) {
+				return;
+			}
+			if ($input_params['transfer_amount'] < self::$transfer_minimum[$transfer_instance]) {
+				return sprintf("Transfer minimum is %s IDR", number_format(self::$transfer_minimum[$transfer_instance], 2));
+			}
+			$input_params['transfer_number'] = (is_numeric($input_params['transfer_number']) ? sprintf("%s", $input_params['transfer_number']) : '');
+			if (!preg_match('/(^0([8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
+				return false;
+			}
+		}
+		
+		switch ($transfer_step) {
+			case 'process':
+				if (!isset($input_params['transfer_id']) || !isset($input_params['transfer_pin'])) {
+					return ("Required transfer_id and transfer_pin");
+				} else {
+					$collected_params = array();
+					$input_params['transfer_pin'] = ((is_string($input_params['transfer_pin']) || is_numeric($input_params['transfer_pin'])) ? sprintf("%s", trim($input_params['transfer_pin'])) : '');
+					$input_params['transfer_id'] = (is_string($input_params['transfer_id']) ? sprintf("%s", trim($input_params['transfer_id'])) : '');
+					
+					$input_params['transfer_amount'] = sprintf("%d", $input_params['transfer_amount']);
+					$collected_params['post_params'] = [
+						'amount'		=> sprintf('%d', $input_params['transfer_amount']),
+						'trxId'			=> sprintf("%s", $input_params['transfer_id']),
+						'to'			=> sprintf("%s", $input_params['transfer_number']),
+						'message'		=> ((isset($input_params['transfer_message']) && is_string($input_params['transfer_message'])) ? substr(sprintf("%s", $input_params['transfer_message']), 0, 32) : sprintf("%s from %s", uniqid(), $this->acc_num)),
+					];
+					
+					$collected_params['url_api_transfer'] = sprintf("%s/%s?msisdn=%s&pin=%s&to=%s&amount=%d&trxid=%s&berita=%s", 
+						self::api_url, 
+						'transfer',
+						$this->acc_num,
+						$input_params['transfer_pin'],
+						$collected_params['post_params']['to'],
+						$collected_params['post_params']['amount'],
+						$collected_params['post_params']['trxId'],
+						$collected_params['post_params']['message']
+					);
+					$this->set_curl_init($collected_params['url_api_transfer'], $this->create_curl_headers($this->headers));
+					try {
+						$collected_params['http_data'] = $this->call_linkaja_gateway_server('GET', $collected_params['url_api_transfer'], []);
+					} catch (Exception $ex) {
+						throw $ex;
+					}
+					return $collected_params;
+				}
+			break;
+			case 'validate':
+			default:
+				try {
+					$transaction_data = $this->transfer_generate_transaction_id($input_params);
+				} catch (Exception $ex) {
+					throw $ex;
+				}
+				return $transaction_data;
+			break;
+		}
+	}
 	
-	
-	
-	
+	private function transfer_generate_transaction_id(Array $input_params) {
+		if (!isset($input_params['transfer_id'])) {
+			return false;
+		}
+		return [
+			'transaction_id'		=> $this->unique_trxid($input_params['transfer_id']),
+			'transaction_amount'	=> (isset($input_params['transfer_amount']) ? $input_params['transfer_amount'] : 0)
+		];
+	}
+	private function unique_trxid(String $transfer_id = '') {
+		try {
+			$microtime = microtime(true);
+			$micro = sprintf("%06d",($microtime - floor($microtime)) * 1000000);
+			$datetime = new DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
+			$datetime->setTimezone(new DateTimeZone('Asia/Bangkok'));
+			return sprintf("%s%s",
+				$transfer_id,
+				$datetime->format('YmdHisu')
+			);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	
 	
 	
@@ -429,16 +528,5 @@ class Linkaja {
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 }
