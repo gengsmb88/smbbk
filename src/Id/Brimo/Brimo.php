@@ -104,7 +104,6 @@ class Brimo {
 			'Os-Version'					=> self::os_version,
 			'User-Agent'					=> self::user_agent,
 			'Authentication'				=> 'Bearer ' . self::app_authentication,
-			'X-Augipt-Authorization'		=> self::$app_augipt
         );
         return $this->headers;
 	}
@@ -121,6 +120,9 @@ class Brimo {
 			return false;
 		}
 		$this->authToken = $token;
+		self::set_app_augipt($this->authToken);
+		
+		
 		$this->headers['X-Api-Authorization'] = sprintf("%s", $this->authToken);
 		$this->headers['X-Augipt-Authorization'] = sprintf("%s", $this->authToken);
 		$this->headers['Os-Version'] = sprintf("%s", self::os_version);
@@ -211,15 +213,14 @@ class Brimo {
 	//-----------------------------------------------------------------------------------------------------------------------
 	// Informasi
 	// Get Auth For First Time
-	public function get_informasi_auth(String $otp_pin = '') {
+	public function get_informasi_auth(String $token, String $otp_pin = '') {
+		$this->set_authorization($token);
 		if (empty($otp_pin)) {
 			return false;
 		}
 		if (!is_numeric($otp_pin)) {
 			return false;
 		}
-		$this->headers['x-uniqueid'] = $this->uniqueId;
-		$this->headers['x-session-id'] = $this->sessionId;
 		
 		$url_api = sprintf("%s/%s?username=%s&password=%s&pin=%s", 
 			self::api_url, 
@@ -252,7 +253,8 @@ class Brimo {
 		return $http_response;
 	}
 	// Verify OTP Code
-	public function verify_otp_code(String $otp_pin, String $otp_code = '') {
+	public function verify_otp_code(String $token, String $otp_pin, String $otp_code = '') {
+		$this->set_authorization($token);
 		if (empty($otp_pin) || empty($otp_code)) {
 			return false;
 		}
@@ -266,9 +268,6 @@ class Brimo {
 			'pin'		=> strval($otp_pin),
 			'code'		=> strval($otp_code)
 		];
-		
-		$this->headers['x-uniqueid'] = $this->uniqueId;
-		$this->headers['x-session-id'] = $this->sessionId;
 		
 		$url_api = sprintf("%s/%s?username=%s&sms=%s", 
 			self::api_url, 
@@ -304,8 +303,7 @@ class Brimo {
 		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
 			return false;
 		}
-		$this->headers['x-uniqueid'] = $this->uniqueId;
-		$this->headers['x-session-id'] = $this->sessionId;
+		
 		
 		$url_api = sprintf("%s/%s?username=%s", 
 			self::api_url, 
@@ -339,8 +337,7 @@ class Brimo {
 		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
 			return false;
 		}
-		$this->headers['x-uniqueid'] = $this->uniqueId;
-		$this->headers['x-session-id'] = $this->sessionId;
+		
 		
 		$url_api = sprintf("%s/%s?username=%s", 
 			self::api_url, 
@@ -361,8 +358,7 @@ class Brimo {
 		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
 			return false;
 		}
-		$this->headers['x-uniqueid'] = $this->uniqueId;
-		$this->headers['x-session-id'] = $this->sessionId;
+		
 		if (!isset($date_params['start_date']) || !isset($date_params['end_date'])) {
 			return false;
 		}
