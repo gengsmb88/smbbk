@@ -320,7 +320,7 @@ class Brimo {
 			$http_response = [
 				'status'			=> false,
 				'data'				=> false,
-				'error'				=> (isset($http_data->description) ? $http_data->description : $http_data),
+				'error'				=> (isset($http_data->message) ? $http_data->message : $http_data),
 			];
 		} else {
 			$http_response = [
