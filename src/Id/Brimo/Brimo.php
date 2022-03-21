@@ -316,7 +316,7 @@ class Brimo {
 		} catch (Exception $ex) {
 			throw $ex;
 		}
-		if (!isset($http_data->code) || !isset($http_data->description)) {
+		if (!isset($http_data->data)) {
 			$http_response = [
 				'status'			=> false,
 				'data'				=> false,
@@ -362,7 +362,7 @@ class Brimo {
 		if (!isset($date_params['start_date']) || !isset($date_params['end_date'])) {
 			return false;
 		}
-		$url_api = sprintf("%s/%s?username=%s&start_date=%s&end_date=%s", 
+		$url_api = sprintf("%s/%s?username=%s&start_date=%s&end_date=%s&json=1", 
 			self::api_url, 
 			'mutasi',
 			$this->acc_username,
