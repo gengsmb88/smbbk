@@ -124,7 +124,7 @@ class Brimo {
 		
 		
 		$this->headers['X-Api-Authorization'] = sprintf("%s", $this->authToken);
-		$this->headers['X-Augipt-Authorization'] = sprintf("%s", $this->authToken);
+		$this->headers['X-Augipt-Authorization'] = sprintf("%s", self::$app_augipt);
 		$this->headers['Os-Version'] = sprintf("%s", self::os_version);
 		$this->headers['Client-Id'] = sprintf("%s", self::client_id);
 		return $this->headers;
