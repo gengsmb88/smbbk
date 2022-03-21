@@ -279,9 +279,6 @@ class Brimo {
 		if (!is_numeric($otp_pin)) {
 			return false;
 		}
-		if (!is_numeric($otp_code)) {
-			return false;
-		}
 		$otp_params = [
 			'pin'		=> strval($otp_pin),
 			'code'		=> strval($otp_code)
