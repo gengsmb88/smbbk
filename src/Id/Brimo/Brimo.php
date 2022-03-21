@@ -291,7 +291,7 @@ class Brimo {
 			self::api_url, 
 			'add_account_verify',
 			$this->acc_username,
-			urlencode($otp_code)
+			$otp_code
 		);
 		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
 		try {
