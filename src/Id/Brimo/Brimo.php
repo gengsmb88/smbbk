@@ -211,6 +211,21 @@ class Brimo {
 	//-----------------------------------------------------------------------------------------------------------------------
 	// Actions:
 	//-----------------------------------------------------------------------------------------------------------------------
+	# If Logged In
+	public function get_is_logged_in(String $token) {
+		$this->set_authorization($token);
+		$url_api = sprintf("%s/%s?json=1", 
+			self::api_url, 
+			'get_accounts'
+		);
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api, []);
+			return $http_data;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	// Informasi
 	// Get Auth For First Time
 	public function get_informasi_auth(String $token, String $otp_pin = '') {
