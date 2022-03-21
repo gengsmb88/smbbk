@@ -300,7 +300,7 @@ class Brimo {
 			throw $ex;
 		}
 		
-		if (!isset($http_data->status) || !isset($http_data->data->auth)) {
+		if (!isset($http_data->code) || !isset($http_data->data->username)) {
 			$http_response = [
 				'status'			=> false,
 				'data'				=> false,
