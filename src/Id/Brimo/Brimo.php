@@ -316,11 +316,11 @@ class Brimo {
 		} catch (Exception $ex) {
 			throw $ex;
 		}
-		if (!isset($http_data->status) || !isset($http_data->data->msisdn)) {
+		if (!isset($http_data->code) || !isset($http_data->description)) {
 			$http_response = [
 				'status'			=> false,
 				'data'				=> false,
-				'error'				=> (isset($http_data->message) ? $http_data->message : $http_data),
+				'error'				=> (isset($http_data->description) ? $http_data->description : $http_data),
 			];
 		} else {
 			$http_response = [
