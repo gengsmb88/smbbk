@@ -32,8 +32,8 @@ class Brimo {
 	protected $cookies_path			= '';
 	protected $acc_num				= '';
 	private $curl_options			= [
-		'timedout_execution'				=> 30,
-		'timedout_connect'					=> 15,
+		'timedout_execution'				=> 15,
+		'timedout_connect'					=> 5,
 		'user_agent'						=> '',
 	];
 	protected $ch					= null;
