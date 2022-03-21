@@ -61,9 +61,9 @@ class Brimo {
 	
 	
 	public function __construct($acc_params, $cookie_path = '') {
-		$this->acc_username = ((is_string($acc_params['acc_username']) || is_numeric($acc_params['acc_username'])) ? sprintf("%s", $acc_params['acc_username']) : '');
-		$this->acc_password = ((is_string($acc_params['acc_password']) || is_numeric($acc_params['acc_password'])) ? sprintf("%s", $acc_params['acc_password']) : '');
-		$this->acc_pin = ((is_string($acc_params['acc_pin']) || is_numeric($acc_params['acc_pin'])) ? sprintf("%s", $acc_params['acc_pin']) : '');
+		$this->acc_username = ((is_string($acc_params['acc_username']) || is_numeric($acc_params['acc_username'])) ? sprintf("%s", $acc_params['acc_username']) : '-');
+		$this->acc_password = ((is_string($acc_params['acc_password']) || is_numeric($acc_params['acc_password'])) ? sprintf("%s", $acc_params['acc_password']) : '-');
+		$this->acc_pin = ((is_string($acc_params['acc_pin']) || is_numeric($acc_params['acc_pin'])) ? sprintf("%s", $acc_params['acc_pin']) : '0');
 		
 		if ((strlen($this->acc_username) == 0) || (strlen($this->acc_password) == 0) || (strlen($this->acc_pin) == 0)) {
 			return false;
@@ -254,7 +254,7 @@ class Brimo {
 			throw $ex;
 		}
 		
-		if (!isset($http_data->status) || !isset($http_data->refId) || !isset($http_data->data->content)) {
+		if (!isset($http_data->code) || !isset($http_data->description) || !isset($http_data->data->token_key)) {
 			$http_response = [
 				'status'			=> false,
 				'data'				=> false,
