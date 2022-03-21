@@ -122,6 +122,7 @@ class Brimo {
 		}
 		$this->authToken = $token;
 		$this->headers['X-Api-Authorization'] = sprintf("%s", $this->authToken);
+		$this->headers['X-Augipt-Authorization'] = sprintf("%s", $this->authToken);
 		$this->headers['Os-Version'] = sprintf("%s", self::os_version);
 		$this->headers['Client-Id'] = sprintf("%s", self::client_id);
 		return $this->headers;
@@ -306,10 +307,10 @@ class Brimo {
 		$this->headers['x-uniqueid'] = $this->uniqueId;
 		$this->headers['x-session-id'] = $this->sessionId;
 		
-		$url_api = sprintf("%s/%s?msisdn=%s", 
+		$url_api = sprintf("%s/%s?username=%s", 
 			self::api_url, 
-			'profile',
-			$this->acc_num
+			'balance',
+			$this->acc_username
 		);
 		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
 		try {
@@ -341,10 +342,10 @@ class Brimo {
 		$this->headers['x-uniqueid'] = $this->uniqueId;
 		$this->headers['x-session-id'] = $this->sessionId;
 		
-		$url_api = sprintf("%s/%s?msisdn=%s", 
+		$url_api = sprintf("%s/%s?username=%s", 
 			self::api_url, 
 			'balance',
-			$this->acc_num
+			$this->acc_username
 		);
 		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
 		try {
@@ -355,23 +356,22 @@ class Brimo {
 		return $http_data;
 	}
 	// Get Informasi Mutasi
-	public function get_informasi_mutasi(String $token, Array $session_params, Array $pagination_params = ['page' => 1, 'limit' => 100]) {
+	public function get_informasi_mutasi(String $token, Array $session_params, Array $date_params = ['start_date' => '2022-01-01', 'end_date' => '2022-01-01']) {
 		$this->set_authorization($token);
 		if (!isset($session_params['device_id']) || !isset($session_params['push_notif_id'])) {
 			return false;
 		}
 		$this->headers['x-uniqueid'] = $this->uniqueId;
 		$this->headers['x-session-id'] = $this->sessionId;
-		$pagination_params = [
-			'page'					=> (is_numeric($pagination_params['page']) ? (int)$pagination_params['page'] : 1),
-			'limit'					=> (is_numeric($pagination_params['limit']) ? (int)$pagination_params['limit'] : 100),
-		];
-		
-		$url_api = sprintf("%s/%s?msisdn=%s&limit=%d&offset=0", 
+		if (!isset($date_params['start_date']) || !isset($date_params['end_date'])) {
+			return false;
+		}
+		$url_api = sprintf("%s/%s?username=%s&start_date=%s&end_date=%s", 
 			self::api_url, 
-			'complete',
-			$this->acc_num,
-			$pagination_params['limit']
+			'mutasi',
+			$this->acc_username,
+			$date_params['start_date'],
+			$date_params['end_date']
 		);
 		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
 		try {
@@ -380,7 +380,6 @@ class Brimo {
 			throw $ex;
 		}
 		return $http_data;
-		
 	}
 	
 	
