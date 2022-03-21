@@ -1,5 +1,5 @@
 <?php
-namespace Smbbk\Id\Linkaja;
+namespace Smbbk\Id\Brimo;
 
 class Brimo {
 	const api_url 					= 'https://brimo.btmsdigital.com';
