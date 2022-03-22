@@ -393,6 +393,34 @@ class Brimo {
 		return $http_data;
 	}
 	
+	# Logout
+	public function set_informasi_logout(String $token, String $acc_username) {
+		$this->set_authorization($token);
+		if (strtolower($acc_username) !== strtolower($this->acc_username)) {
+			return false;
+		}
+		$url_api_logout = sprintf("%s/%s?username=%s", 
+			self::api_url, 
+			'logout',
+			$this->acc_username
+		);
+		$url_api_delete = sprintf("%s/%s?username=%s", 
+			self::api_url, 
+			'delete_account',
+			$this->acc_username
+		);
+		$this->set_curl_init($url_api_logout, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api_logout, []);
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api_delete, []);
+			return $http_data;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
+	
+	
+	
 	
 	
 	// TRANSFER
