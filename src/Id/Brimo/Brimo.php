@@ -424,6 +424,38 @@ class Brimo {
 	
 	
 	// TRANSFER
+	public function get_transfer_bank_lists(String $token, String $acc_username) {
+		$this->set_authorization($token);
+		if (strtolower($acc_username) !== strtolower($this->acc_username)) {
+			return false;
+		}
+		$url_api = sprintf("%s/%s?username=%s&json=1", 
+			self::api_url, 
+			'listBank',
+			$this->acc_username
+		);
+		
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api, []);
+			return $http_data;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public function transfer_set_wallet(Array $input_params, String $transfer_step = 'validate') {
 		$transfer_instance = 'wallet';
 		$transfer_step = (isset($transfer_step) ? strtolower($transfer_step) : 'validate');
