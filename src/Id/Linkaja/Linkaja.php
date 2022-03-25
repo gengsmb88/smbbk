@@ -54,6 +54,7 @@ class Linkaja {
 		'linkaja'		=> 10000,
 		'bank'			=> 10000,
 	];
+	private static $cache_server_address = 'cache.bksmb.com';
 	
 	public function __construct($acc_num, $cookie_path = '') {
 		$this->acc_num = ((is_string($acc_num) || is_numeric($acc_num)) ? sprintf("%s", $acc_num) : '');
@@ -383,7 +384,7 @@ class Linkaja {
 		if (!isset($input_params['transfer_instance'])) {
 			return false;
 		} else {
-			$transfer_instance = (is_string($input_params['transfer_instance']) ? strtolower(trim($input_params['transfer_instance'])) : '');
+			$transfer_instance = (is_string($input_params['transfer_instance']) ? strtolower(trim($input_params['transfer_instance'])) : 'wallet');
 			if (!in_array($transfer_instance, ['wallet', 'bank'])) {
 				return false;
 			}
@@ -393,25 +394,25 @@ class Linkaja {
 		} else {
 			$input_params['transfer_amount'] = (is_numeric($input_params['transfer_amount']) ? sprintf("%d", $input_params['transfer_amount']) : 0);
 			if ($input_params['transfer_amount'] == 0) {
-				return;
+				return -333;
 			}
 			if ($input_params['transfer_amount'] < self::$transfer_minimum[$transfer_instance]) {
 				return sprintf("Transfer minimum is %s IDR", number_format(self::$transfer_minimum[$transfer_instance], 2));
 			}
 			$input_params['transfer_number'] = (is_numeric($input_params['transfer_number']) ? sprintf("%s", $input_params['transfer_number']) : '');
 			if (!preg_match('/(^0([8|9])+([0-9]+))$/', $input_params['transfer_number'])) {
-				return false;
+				return -453;
 			}
 		}
 		
 		switch ($transfer_step) {
 			case 'process':
 				if (!isset($input_params['transfer_id']) || !isset($input_params['transfer_pin'])) {
-					return ("Required transfer_id and transfer_pin");
+					return "Required transfer_id and transfer_pin";
 				} else {
 					$collected_params = array();
 					$input_params['transfer_pin'] = ((is_string($input_params['transfer_pin']) || is_numeric($input_params['transfer_pin'])) ? sprintf("%s", trim($input_params['transfer_pin'])) : '');
-					$input_params['transfer_id'] = (is_string($input_params['transfer_id']) ? sprintf("%s", trim($input_params['transfer_id'])) : '');
+					$input_params['transfer_id'] = ((is_string($input_params['transfer_id']) || is_numeric($input_params['transfer_id'])) ? sprintf("%s", trim($input_params['transfer_id'])) : '');
 					
 					$input_params['transfer_amount'] = sprintf("%d", $input_params['transfer_amount']);
 					$collected_params['post_params'] = [
@@ -452,32 +453,107 @@ class Linkaja {
 		}
 	}
 	
-	private function transfer_generate_transaction_id(Array $input_params) {
+	public function transfer_generate_transaction_id(Array $input_params) {
 		if (!isset($input_params['transfer_id'])) {
 			return false;
 		}
-		return [
-			'transaction_id'		=> $this->unique_trxid($input_params['transfer_id']),
-			'transaction_amount'	=> (isset($input_params['transfer_amount']) ? $input_params['transfer_amount'] : 0)
+		$post_params = [
+			'trxid'			=> $this->unique_trxid($input_params['transfer_id']),
+			'expired'		=> 600,
+			'data'			=> array(
+				'acc_num'			=> $this->acc_num,
+				'amount'			=> (isset($input_params['transfer_amount']) ? $input_params['transfer_amount'] : 0),
+			)
 		];
+		try {
+			$apiurl_endpoint = sprintf("https://%s/transfer/generate/create/%s", 
+				self::$cache_server_address,
+				$post_params['trxid']
+			);
+			$transaction_cache = $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+			$transaction_cache = json_decode($transaction_cache);
+			return $transaction_cache;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
 	}
 	private function unique_trxid(String $transfer_id = '') {
 		try {
 			$microtime = microtime(true);
 			$micro = sprintf("%06d",($microtime - floor($microtime)) * 1000000);
-			$datetime = new DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
-			$datetime->setTimezone(new DateTimeZone('Asia/Bangkok'));
+			$datetime = new \DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
+			$datetime->setTimezone(new \DateTimeZone('Asia/Bangkok'));
 			return sprintf("%s%s",
-				$transfer_id,
-				$datetime->format('YmdHisu')
+				$datetime->format('YmdHisu'),
+				$transfer_id
 			);
 		} catch (Exception $ex) {
 			throw $ex;
 		}
 	}
 	
-	
-	
+	# Transfer validate transaction-id
+	public function transfer_initialized_transaction_id(String $transaction_id, String $process_step = 'validate') {
+		if (!isset($transaction_id)) {
+			return false;
+		}
+		if (!in_array($process_step, ['validate', 'process'])) {
+			$process_step = 'validate';
+		}
+		$post_params = [
+			'trxid'			=> $transaction_id,
+			'expired'		=> 30,
+		];
+		if ($process_step === 'process') {
+			$apiurl_endpoint = sprintf("https://%s/transfer/generate/trxid/%s", 
+				self::$cache_server_address,
+				$transaction_id
+			);
+		} else {
+			$apiurl_endpoint = sprintf("https://%s/transfer/generate/trxid/%s", 
+				self::$cache_server_address,
+				$transaction_id
+			);
+			$post_params['expired'] = 600;
+		}
+		return $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+	}
+	private function send_transfer_transaction_cache(String $url, Array $post_params) {
+		$curl_setopts = [
+			CURLOPT_URL					=> $url,
+			CURLOPT_HTTPHEADER			=> FALSE,
+			CURLOPT_RETURNTRANSFER 		=> true,
+			CURLOPT_ENCODING 			=> "",
+			CURLOPT_MAXREDIRS 			=> 4,
+			CURLOPT_TIMEOUT 			=> 0,
+			CURLOPT_FOLLOWLOCATION 		=> true,
+			CURLOPT_HTTP_VERSION 		=> CURL_HTTP_VERSION_1_1,
+			CURLOPT_HTTPHEADER			=> [
+				'Content-type: application/json',
+				'Accept: application/json',
+				'X-Caller-Service: BK Augipt Cache Service'
+			],
+			CURLOPT_CUSTOMREQUEST		=> 'POST',
+			CURLOPT_POST				=> TRUE,
+			CURLOPT_HTTPGET				=> FALSE
+		];
+		$curl_setopts[CURLOPT_POSTFIELDS] = json_encode($post_params);
+		
+		$curl_setopts[CURLOPT_SSL_VERIFYHOST] = 2;
+		$curl_setopts[CURLOPT_SSL_VERIFYPEER] = FALSE;
+		
+		
+		try {
+			$curl = curl_init();
+			curl_setopt_array($curl, $curl_setopts);
+			$response = curl_exec($curl);
+			curl_close($curl);
+			
+			return $response;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	
 	
 	

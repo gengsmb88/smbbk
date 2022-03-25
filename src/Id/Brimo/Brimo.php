@@ -537,48 +537,7 @@ class Brimo {
 		}
 	}
 	
-	public function transfer_generate_transaction_id(String $token, Array $input_params) {
-		$this->set_authorization($token);
-		if (!isset($input_params['transfer_id'])) {
-			return false;
-		}
-		return [
-			'transaction_id'		=> $this->unique_trxid($input_params['transfer_id']),
-			'transaction_amount'	=> (isset($input_params['transfer_amount']) ? $input_params['transfer_amount'] : 0)
-		];
-	}
-	private function unique_trxid(String $transfer_id = '') {
-		try {
-			$microtime = microtime(true);
-			$micro = sprintf("%06d",($microtime - floor($microtime)) * 1000000);
-			$datetime = new \DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
-			$datetime->setTimezone(new \DateTimeZone('Asia/Bangkok'));
-			return sprintf("%s%s",
-				$transfer_id,
-				$datetime->format('YmdHisu')
-			);
-		} catch (Exception $ex) {
-			throw $ex;
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	private function call_brimo_gateway_server(String $method, String $url, Array $post_params = []) {
 		$method = strtoupper($method);
 		if (!in_array($method, ['GET', 'POST'])) {
@@ -612,6 +571,45 @@ class Brimo {
 	}
 	
 	# Transfer validate transaction-id
+	public function transfer_generate_transaction_id(String $token, Array $input_params) {
+		$this->set_authorization($token);
+		if (!isset($input_params['transfer_id'])) {
+			return false;
+		}
+		$post_params = [
+			'trxid'			=> $this->unique_trxid($input_params['transfer_id']),
+			'expired'		=> 600,
+			'data'			=> array(
+				'acc_num'			=> $this->acc_num,
+				'amount'			=> (isset($input_params['transfer_amount']) ? $input_params['transfer_amount'] : 0),
+			)
+		];
+		try {
+			$apiurl_endpoint = sprintf("https://%s/transfer/generate/create/%s", 
+				self::$cache_server_address,
+				$post_params['trxid']
+			);
+			$transaction_cache = $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+			$transaction_cache = json_decode($transaction_cache);
+			return $transaction_cache;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
+	private function unique_trxid(String $transfer_id = '') {
+		try {
+			$microtime = microtime(true);
+			$micro = sprintf("%06d",($microtime - floor($microtime)) * 1000000);
+			$datetime = new \DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
+			$datetime->setTimezone(new \DateTimeZone('Asia/Bangkok'));
+			return sprintf("%s%s",
+				$transfer_id,
+				$datetime->format('YmdHisu')
+			);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	public function transfer_initialized_transaction_id(String $token, String $transaction_id, String $process_step = 'validate') {
 		$this->set_authorization($token);
 		
