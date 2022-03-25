@@ -551,8 +551,8 @@ class Brimo {
 		try {
 			$microtime = microtime(true);
 			$micro = sprintf("%06d",($microtime - floor($microtime)) * 1000000);
-			$datetime = new DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
-			$datetime->setTimezone(new DateTimeZone('Asia/Bangkok'));
+			$datetime = new \DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
+			$datetime->setTimezone(new \DateTimeZone('Asia/Bangkok'));
 			return sprintf("%s%s",
 				$transfer_id,
 				$datetime->format('YmdHisu')
