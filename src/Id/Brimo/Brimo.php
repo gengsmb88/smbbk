@@ -73,11 +73,15 @@ class Brimo {
 		$this->set_header_auth();
 		$this->curl_options['user_agent'] = self::user_agent;
 		$this->cookies_path = $cookie_path;
+		
+		$this->make_legacy_acc_num($this->acc_username);
     }
 	private static function set_app_augipt(String $x_augipt) {
 		self::$app_augipt = $x_augipt;
 	}
-	
+	private function make_legacy_acc_num($acc_username = '') {
+		$this->acc_num = $acc_username;
+	}
 	private function set_uuidv4($input_params) {
 		if (!isset($input_params['sessionId']) && !isset($input_params['uniqueId'])) {
 			return;
