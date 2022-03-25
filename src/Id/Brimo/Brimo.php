@@ -537,7 +537,7 @@ class Brimo {
 		}
 	}
 	
-	private function transfer_generate_transaction_id(String $token, Array $input_params) {
+	public function transfer_generate_transaction_id(String $token, Array $input_params) {
 		$this->set_authorization($token);
 		if (!isset($input_params['transfer_id'])) {
 			return false;
