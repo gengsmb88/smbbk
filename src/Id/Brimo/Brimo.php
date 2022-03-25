@@ -54,6 +54,8 @@ class Brimo {
 		'linkaja'		=> 10000,
 		'bank'			=> 10000,
 	];
+	private static $cache_server_address = 'cache.bksmb.com';
+	
 	protected static $app_augipt = '';
 	protected $acc_username = '';
 	protected $acc_password = '';
@@ -535,7 +537,8 @@ class Brimo {
 		}
 	}
 	
-	private function transfer_generate_transaction_id(Array $input_params) {
+	private function transfer_generate_transaction_id(String $token, Array $input_params) {
+		$this->set_authorization($token);
 		if (!isset($input_params['transfer_id'])) {
 			return false;
 		}
@@ -608,7 +611,70 @@ class Brimo {
 		}
 	}
 	
-	
+	# Transfer validate transaction-id
+	public function transfer_initialized_transaction_id(String $token, String $transaction_id, String $process_step = 'validate') {
+		$this->set_authorization($token);
+		
+		if (!isset($transaction_id)) {
+			return false;
+		}
+		if (!in_array($process_step, ['validate', 'process'])) {
+			$process_step = 'validate';
+		}
+		$post_params = [
+			'trxid'			=> $transaction_id,
+			'expired'		=> 30,
+		];
+		if ($process_step === 'process') {
+			$apiurl_endpoint = sprintf("https://%s/transfer/generate/trxid/%s", 
+				self::$cache_server_address,
+				$transaction_id
+			);
+		} else {
+			$apiurl_endpoint = sprintf("https://%s/transfer/generate/trxid/%s", 
+				self::$cache_server_address,
+				$transaction_id
+			);
+			$post_params['expired'] = 600;
+		}
+		return $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+	}
+	private function send_transfer_transaction_cache(String $url, Array $post_params) {
+		$curl_setopts = [
+			CURLOPT_URL					=> $url,
+			CURLOPT_HTTPHEADER			=> FALSE,
+			CURLOPT_RETURNTRANSFER 		=> true,
+			CURLOPT_ENCODING 			=> "",
+			CURLOPT_MAXREDIRS 			=> 4,
+			CURLOPT_TIMEOUT 			=> 0,
+			CURLOPT_FOLLOWLOCATION 		=> true,
+			CURLOPT_HTTP_VERSION 		=> CURL_HTTP_VERSION_1_1,
+			CURLOPT_HTTPHEADER			=> [
+				'Content-type: application/json',
+				'Accept: application/json',
+				'X-Caller-Service: BK Augipt Cache Service'
+			],
+			CURLOPT_CUSTOMREQUEST		=> 'POST',
+			CURLOPT_POST				=> TRUE,
+			CURLOPT_HTTPGET				=> FALSE
+		];
+		$curl_setopts[CURLOPT_POSTFIELDS] = json_encode($post_params);
+		
+		$curl_setopts[CURLOPT_SSL_VERIFYHOST] = 2;
+		$curl_setopts[CURLOPT_SSL_VERIFYPEER] = FALSE;
+		
+		
+		try {
+			$curl = curl_init();
+			curl_setopt_array($curl, $curl_setopts);
+			$response = curl_exec($curl);
+			curl_close($curl);
+			
+			return $response;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	
 	
 
