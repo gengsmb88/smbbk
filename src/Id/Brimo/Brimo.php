@@ -584,10 +584,17 @@ class Brimo {
 			'trxid'			=> $this->unique_trxid($input_params['transfer_id']),
 			'expired'		=> 600,
 			'data'			=> array(
-				'acc_num'			=> $this->acc_num,
+				'acc_num'			=> $this->acc_username,
+				'acc_username'		=> $this->acc_username,
 				'amount'			=> (isset($input_params['transfer_amount']) ? $input_params['transfer_amount'] : 0),
 			)
 		];
+		if (isset($input_params['transfer_created'])) {
+			$post_params['data']['transfer_created'] = $input_params['transfer_created'];
+		}
+		if (isset($input_params['transfer_number'])) {
+			$post_params['data']['transfer_number'] = $input_params['transfer_number'];
+		}
 		try {
 			$apiurl_endpoint = sprintf("https://%s/transfer/generate/create/%s", 
 				self::$cache_server_address,
