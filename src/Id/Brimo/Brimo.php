@@ -601,6 +601,12 @@ class Brimo {
 		if (!isset($input_params['transfer_id'])) {
 			return false;
 		}
+		try {
+			$clean_cache = $this->transfer_clean_trxid_from_cache($this->authToken, $input_params);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		
 		$url_api = sprintf("%s/%s?username=%s&pin=%s&code=%03s&to=%s&amount=%s&idtrx=%s&json=1", 
 			self::api_url, 
 			'transfer',
@@ -611,6 +617,14 @@ class Brimo {
 			$input_params['transfer_amount'],
 			$input_params['transfer_id']
 		);
+		return [
+			'clean_cache'		=> $clean_cache,
+			'input_params'		=> $input_params,
+			'url_api'			=> $url_api
+		];
+		/*
+		
+		
 		
 		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
 		try {
@@ -619,6 +633,22 @@ class Brimo {
 		} catch (Exception $ex) {
 			throw $ex;
 		}
+		*/
+	}
+	private function transfer_clean_trxid_from_cache(String $token, Array $input_params) {
+		
+		if (!isset($input_params['transfer_id'])) {
+			return false;
+		}
+		$post_params = [
+			'trxid'			=> $input_params['transfer_id'],
+			'expired'		=> 0,
+		];
+		$apiurl_endpoint = sprintf("https://%s/transfer/generate/cleanuuid/%s", 
+			self::$cache_server_address,
+			$post_params['trxid']
+		);
+		return $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
 	}
 	# Transfer validate transaction-id
 	public function transfer_generate_transaction_id(String $token, Array $input_params) {
