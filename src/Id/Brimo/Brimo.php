@@ -650,6 +650,7 @@ class Brimo {
 		try {
 			$clean_cache = $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
 			$clean_cache = json_decode($clean_cache);
+			return $clean_cache;
 		} catch (Exception $ex) {
 			throw $ex;
 		}
