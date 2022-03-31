@@ -597,6 +597,7 @@ class Brimo {
 	}
 	# Transfer Make
 	public function transfer_set_bank(String $token, Array $input_params) {
+		$status = FALSE;
 		$this->set_authorization($token);
 		if (!isset($input_params['transfer_id'])) {
 			return false;
@@ -606,34 +607,36 @@ class Brimo {
 		} catch (Exception $ex) {
 			throw $ex;
 		}
-		
-		$url_api = sprintf("%s/%s?username=%s&pin=%s&code=%03s&to=%s&amount=%s&idtrx=%s&json=1", 
-			self::api_url, 
-			'transfer',
-			$this->acc_username,
-			$input_params['transfer_pin'],
-			$input_params['transfer_bankcode'],
-			$input_params['transfer_number'],
-			$input_params['transfer_amount'],
-			$input_params['transfer_id']
-		);
-		return [
-			'clean_cache'		=> $clean_cache,
-			'input_params'		=> $input_params,
-			'url_api'			=> $url_api
-		];
-		/*
-		
-		
-		
-		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
-		try {
-			$http_data = $this->call_brimo_gateway_server('GET', $url_api, []);
-			return $http_data;
-		} catch (Exception $ex) {
-			throw $ex;
+		if (!isset($clean_cache->status)) {
+			return false;
 		}
-		*/
+		if ($clean_cache->status === TRUE) {
+			$url_api = sprintf("%s/%s?username=%s&pin=%s&code=%03s&to=%s&amount=%s&idtrx=%s&json=1", 
+				self::api_url, 
+				'transfer',
+				$this->acc_username,
+				$input_params['transfer_pin'],
+				$input_params['transfer_bankcode'],
+				$input_params['transfer_number'],
+				$input_params['transfer_amount'],
+				$input_params['transfer_id']
+			);
+			try {
+				$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+				$http_data = $this->call_brimo_gateway_server('GET', $url_api, []);
+				if ($http_data != FALSE) {
+					$status = TRUE;
+				}
+			} catch (Exception $ex) {
+				throw $ex;
+			}
+		} else {
+			$http_data = FALSE;
+		}
+		return [
+			'status'		=> $status,
+			'data'			=> $http_data
+		];
 	}
 	private function transfer_clean_trxid_from_cache(String $token, Array $input_params) {
 		if (!isset($input_params['transfer_id'])) {
