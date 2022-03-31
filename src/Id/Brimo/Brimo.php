@@ -573,7 +573,28 @@ class Brimo {
 			return $http_body;
 		}
 	}
-	
+	# Transfer get-data
+	public function get_transfer_cache_data_by_trxid(String $token, String $transfer_id, Int $expired_seconds) {
+		$this->set_authorization($token);
+		if (!is_numeric($expired_seconds)) {
+			return false;
+		}
+		$post_params = [
+			'trxid'			=> $transfer_id,
+			'expired'		=> $expired_seconds,
+		];
+		$apiurl_endpoint = sprintf("https://%s/transfer/generate/trxid/%s", 
+			self::$cache_server_address,
+			$post_params['trxid']
+		);
+		try {
+			$transfer_cache = $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+			$transfer_cache = json_decode($transfer_cache);
+			return $transfer_cache;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	# Transfer validate transaction-id
 	public function transfer_generate_transaction_id(String $token, Array $input_params) {
 		$this->set_authorization($token);
