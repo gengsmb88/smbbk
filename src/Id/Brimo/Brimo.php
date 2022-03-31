@@ -636,7 +636,6 @@ class Brimo {
 		*/
 	}
 	private function transfer_clean_trxid_from_cache(String $token, Array $input_params) {
-		
 		if (!isset($input_params['transfer_id'])) {
 			return false;
 		}
@@ -648,7 +647,12 @@ class Brimo {
 			self::$cache_server_address,
 			$post_params['trxid']
 		);
-		return $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+		try {
+			$clean_cache = $this->send_transfer_transaction_cache($apiurl_endpoint, $post_params);
+			$clean_cache = json_decode($clean_cache);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
 	}
 	# Transfer validate transaction-id
 	public function transfer_generate_transaction_id(String $token, Array $input_params) {
