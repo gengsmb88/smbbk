@@ -595,6 +595,31 @@ class Brimo {
 			throw $ex;
 		}
 	}
+	# Transfer Make
+	public function transfer_set_bank(String $token, Array $input_params) {
+		$this->set_authorization($token);
+		if (!isset($input_params['transfer_id'])) {
+			return false;
+		}
+		$url_api = sprintf("%s/%s?username=%s&pin=%s&code=%03s&to=%s&amount=%s&idtrx=%s&json=1", 
+			self::api_url, 
+			'transfer',
+			$this->acc_username,
+			$input_params['transfer_pin'],
+			$input_params['transfer_bankcode'],
+			$input_params['transfer_number'],
+			$input_params['transfer_amount'],
+			$input_params['transfer_id']
+		);
+		
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api, []);
+			return $http_data;
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
 	# Transfer validate transaction-id
 	public function transfer_generate_transaction_id(String $token, Array $input_params) {
 		$this->set_authorization($token);
