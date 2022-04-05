@@ -462,8 +462,130 @@ class Gopay {
 		}
 	}
 	
+	//----------------------------
+	// Transfer Bank Purposes
+	//----------------------------
+	private function transfer_validate_bank(Array $input_params, String $token = '', $session_params = array()) {
+		$params_uuid = [
+			'sessionId'				=> (isset($session_params['sessionId']) ? $session_params['sessionId'] : ''),
+			'uniqueId'				=> (isset($session_params['uniqueId']) ? $session_params['uniqueId'] : ''),
+		];
+		if (empty($params_uuid['sessionId']) || empty($params_uuid['uniqueId'])) {
+			return false;
+		}
+		$this->set_uuidv4($params_uuid);
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		
+		$headers = $this->get_authorized_headers($token);
+		$url_api = sprintf("%s/%s?bank_code=%s&account_number=%s", 
+			self::API_CUSTOMER, 
+			'v1/bank-accounts/validate',
+			$input_params['bankCode'],
+			$input_params['bankNumber']
+		);
+		$url_referer = sprintf("%s/%s", self::API_CUSTOMER, 'v1/payment-options/balances');
+		$this->set_curl_init($url_api, $this->create_curl_headers($headers));
+		
+		curl_setopt($this->ch, CURLOPT_URL, $url_api);
+		curl_setopt($this->ch, CURLOPT_REFERER, $url_referer);
+		curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'GET');
+		curl_setopt($this->ch, CURLOPT_POST, FALSE);
+		curl_setopt($this->ch, CURLOPT_HTTPGET, TRUE);
+		
+		try {
+			$curl_collect = $this->curlexec();
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		if (isset($curl_collect['http_body'])) {
+			$http_body = json_decode($curl_collect['http_body']);
+			return $http_body;
+		}
+    }
+	public function transfer_get_bank_lists(String $token = '', $session_params = array()) {
+		
+		$params_uuid = [
+			'sessionId'				=> (isset($session_params['sessionId']) ? $session_params['sessionId'] : ''),
+			'uniqueId'				=> (isset($session_params['uniqueId']) ? $session_params['uniqueId'] : ''),
+		];
+		if (empty($params_uuid['sessionId']) || empty($params_uuid['uniqueId'])) {
+			return false;
+		}
+		$this->set_uuidv4($params_uuid);
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		
+			
+		
+		$headers = $this->get_authorized_headers($token);
+		$url_api = sprintf("%s/%s", self::API_CUSTOMER, 'v1/banks?type=transfer&show_withdrawal_block_status=false');
+		$url_referer = sprintf("%s/%s", self::API_CUSTOMER, 'v1/payment-options/balances');
+		$this->set_curl_init($url_api, $this->create_curl_headers($headers));
+		
+		curl_setopt($this->ch, CURLOPT_URL, $url_api);
+		curl_setopt($this->ch, CURLOPT_REFERER, $url_referer);
+		curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'GET');
+		curl_setopt($this->ch, CURLOPT_POST, FALSE);
+		curl_setopt($this->ch, CURLOPT_HTTPGET, TRUE);
+		
+		try {
+			$curl_collect = $this->curlexec();
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		if (isset($curl_collect['http_body'])) {
+			$http_body = json_decode($curl_collect['http_body']);
+			return $http_body;
+		}
+		
+	}
+	public function transfer_set_bank_transfer(Array $input_params, String $token = '', $session_params = array()) {
+		$bankCode, $bankNumber, int $amount, $pin) {
+        self::setIdKey();
+        
+		$bankAccountNames = $this->transfer_validate_bank($input_params, $token, $session_params);
+		$bankAccountName = '';
+		
+		
+        $payload         = array(
+            'account_name' 				=> $bankAccountName,
+            'account_number' 			=> sprintf("%s", $input_params['bankNumber']),
+            'amount' 					=> sprintf("%s", $input_params['amount']),
+            'bank_code' 				=> sprintf("%s", $input_params['bankCode']),
+            'currency' 					=> 'IDR',
+            'pin' 						=> sprintf("%s", $input_params['pin']),
+            'type' 						=> 'transfer'
+        );
+		
+		$headers = $this->get_authorized_headers($token);
+		$url_api = sprintf("%s/%s", self::API_CUSTOMER, 'v1/withdrawals');
+		$url_referer = sprintf("%s/%s", self::API_CUSTOMER, 'v1/banks?type=transfer&show_withdrawal_block_status=false');
+		$this->set_curl_init($url_api, $this->create_curl_headers($headers));
+		
+		curl_setopt($this->ch, CURLOPT_URL, $url_api);
+		curl_setopt($this->ch, CURLOPT_REFERER, $url_referer);
+		curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'POST');
+		curl_setopt($this->ch, CURLOPT_POST, TRUE);
+		curl_setopt($this->ch, CURLOPT_HTTPGET, FALSE);
+		curl_setopt($this->ch, CURLOPT_POSTFIELDS, json_encode($input_params['transfer_params'], JSON_NUMERIC_CHECK));
+		
+		try {
+			$curl_collect = $this->curlexec();
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		if (isset($curl_collect['http_body'])) {
+			$http_body = json_decode($curl_collect['http_body']);
+			return $http_body;
+		}
+    }
 	
 	
+	
+	
+	
+	//------------------------------------------
 	
 	
 	
