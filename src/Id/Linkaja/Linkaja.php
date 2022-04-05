@@ -11,7 +11,6 @@ class Linkaja {
     const action_mark 				= 'Linkaja Wallet';
 	const client_id					= "linkaja_ios";
 	const app_authentication		= 'aWYgKCRjb2xsZWN0RGF0YVsndmlld190eXBlJ10gPT0gJ2FjdGlvbicpIHs';
-	const app_augipt				= 'U1VNTUJNDXC520SDJIREFZS7O092HYEKFZU1U1VNNSDCPEQ624SREFZ';
 	/*
     @ Push Notification ID (SHA256 Hash)
     @ Generated from self::generateRandomSHA256();
@@ -55,16 +54,26 @@ class Linkaja {
 		'bank'			=> 10000,
 	];
 	private static $cache_server_address = 'cache.bksmb.com';
-	
-	public function __construct($acc_num, $cookie_path = '') {
+	protected static $app_augipt = '';
+	public function __construct($acc_num, $cookie_path = '', String $x_auth = '') {
 		$this->acc_num = ((is_string($acc_num) || is_numeric($acc_num)) ? sprintf("%s", $acc_num) : '');
 		if (strlen($this->acc_num) == 0) {
 			return false;
 		}
+		try {
+			$this->set_app_augipt($x_auth);
+		} catch (Exception $Ex) {
+			throw $Ex;
+		}
+		
 		$this->set_header_auth();
 		$this->curl_options['user_agent'] = self::user_agent;
 		$this->cookies_path = $cookie_path;
     }
+	private static function set_app_augipt(String $x_augipt) {
+		self::$app_augipt = $x_augipt;
+	}
+	
 	private function set_uuidv4($input_params) {
 		if (!isset($input_params['sessionId']) && !isset($input_params['uniqueId'])) {
 			return;
@@ -93,7 +102,7 @@ class Linkaja {
 			'Os-Version'					=> self::os_version,
 			'User-Agent'					=> self::user_agent,
 			'Authentication'				=> 'Bearer ' . self::app_authentication,
-			'X-Augipt-Authorization'		=> self::app_augipt
+			'X-Augipt-Authorization'		=> self::$app_augipt
         );
         return $this->headers;
 	}
