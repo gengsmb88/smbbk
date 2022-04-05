@@ -318,6 +318,44 @@ class Brimo {
 		}
 		return $http_response;
 	}
+	
+	// Get Auth For Relogin
+	public function get_informasi_relogin(String $token, String $otp_pin = '') {
+		$this->set_authorization($token);
+		if (empty($otp_pin)) {
+			return false;
+		}
+		if (!is_numeric($otp_pin)) {
+			return false;
+		}
+		$url_api = sprintf("%s/%s?username=%s", 
+			self::api_url, 
+			'relogin',
+			$this->acc_username
+		);
+		$this->set_curl_init($url_api, $this->create_curl_headers($this->headers));
+		try {
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api, []);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		
+		if (!isset($http_data->code) || !isset($http_data->description) || !isset($http_data->data->token_key)) {
+			$http_response = [
+				'status'			=> false,
+				'data'				=> false,
+				'error'				=> (isset($http_data->message) ? $http_data->message : $http_data),
+			];
+		} else {
+			$http_response = [
+				'status'			=> true,
+				'data'				=> $http_data,
+				'error'				=> false,
+			];
+		}
+		
+		return $http_response;
+	}
 	//-----------------------------------------------------------------------------------------------------------------------
 	public function get_account_data(String $token, Array $session_params = array()) {
 		$this->set_authorization($token);
@@ -406,7 +444,6 @@ class Brimo {
 			return false;
 		}
 		
-		$http_datas = [];
 		// Logout
 		$url_api_logout = sprintf("%s/%s?username=%s", 
 			self::api_url, 
@@ -415,10 +452,21 @@ class Brimo {
 		);
 		$this->set_curl_init($url_api_logout, $this->create_curl_headers($this->headers));
 		try {
-			$http_datas['logout'] = $this->call_brimo_gateway_server('GET', $url_api_logout, []);
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api_logout, []);
+			return $http_data;
 		} catch (Exception $ex) {
 			throw $ex;
 		}
+		
+		return $http_datas;
+	}
+	# Delete
+	public function set_informasi_delete_account(String $token, String $acc_username) {
+		$this->set_authorization($token);
+		if (strtolower($acc_username) !== strtolower($this->acc_username)) {
+			return false;
+		}
+		
 		// Delete
 		$url_api_delete = sprintf("%s/%s?username=%s", 
 			self::api_url, 
@@ -427,13 +475,12 @@ class Brimo {
 		);
 		$this->set_curl_init($url_api_delete, $this->create_curl_headers($this->headers));
 		try {
-			$http_datas['delete'] = $this->call_brimo_gateway_server('GET', $url_api_delete, []);
+			$http_data = $this->call_brimo_gateway_server('GET', $url_api_delete, []);
+			return $http_data;
 		} catch (Exception $ex) {
 			throw $ex;
 		}
-		return $http_datas;
 	}
-	
 	
 	
 	
