@@ -33,6 +33,7 @@ class Gopay {
 	];
 	
     private $authToken, $uniqueId, $sessionId, $pin, $idKey;
+	private $transfer_idempotency_key = '';
 	public function __construct($acc_num, $cookie_path = '') {
 		$this->acc_num = ((is_string($acc_num) || is_numeric($acc_num)) ? sprintf("%s", $acc_num) : '');
 		if (strlen($this->acc_num) == 0) {
@@ -42,6 +43,30 @@ class Gopay {
 		$this->curl_options['user_agent'] = self::userAgent;
 		$this->cookies_path = $cookie_path;
     }
+	private function set_transfer_idempotency_key(String $trx_uuid) {
+		$this->transfer_idempotency_key = $trx_uuid;
+	}
+	
+	private function unique_trxid(String $transfer_id = '') {
+		if (empty($transfer_id)) {
+			$transfer_id = uniqid();
+		}
+		try {
+			$microtime = microtime(true);
+			$micro = sprintf("%06d",($microtime - floor($microtime)) * 1000000);
+			$datetime = new \DateTime(date("Y-m-d H:i:s.{$micro}", $microtime));
+			$datetime->setTimezone(new \DateTimeZone('Asia/Bangkok'));
+			return sprintf("%s%s",
+				$datetime->format('YmdHisu'),
+				$transfer_id
+			);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+	}
+	
+	
+	
 	private function set_uuidv4($input_params) {
 		if (!isset($input_params['sessionId']) && !isset($input_params['uniqueId'])) {
 			return;
@@ -465,7 +490,7 @@ class Gopay {
 	//----------------------------
 	// Transfer Bank Purposes
 	//----------------------------
-	private function transfer_validate_bank(Array $input_params, String $token = '', $session_params = array()) {
+	public function transfer_validate_bank(String $token = '', $session_params = array(), Array $input_params = []) {
 		$params_uuid = [
 			'sessionId'				=> (isset($session_params['sessionId']) ? $session_params['sessionId'] : ''),
 			'uniqueId'				=> (isset($session_params['uniqueId']) ? $session_params['uniqueId'] : ''),
@@ -473,16 +498,25 @@ class Gopay {
 		if (empty($params_uuid['sessionId']) || empty($params_uuid['uniqueId'])) {
 			return false;
 		}
+		
+		try {
+			$trx_uuid = $this->unique_trxid();
+			$this->set_transfer_idempotency_key($trx_uuid);
+		} catch (Exception $ex) {
+			throw $ex;
+		}
+		
 		$this->set_uuidv4($params_uuid);
 		$this->headers['x-uniqueid'] = $this->uniqueId;
 		$this->headers['x-session-id'] = $this->sessionId;
+		$this->headers['Idempotency-Key'] = $this->transfer_idempotency_key;
 		
 		$headers = $this->get_authorized_headers($token);
 		$url_api = sprintf("%s/%s?bank_code=%s&account_number=%s", 
 			self::API_CUSTOMER, 
 			'v1/bank-accounts/validate',
-			$input_params['bankCode'],
-			$input_params['bankNumber']
+			$input_params['bank_code'],
+			$input_params['bank_number']
 		);
 		$url_referer = sprintf("%s/%s", self::API_CUSTOMER, 'v1/payment-options/balances');
 		$this->set_curl_init($url_api, $this->create_curl_headers($headers));
@@ -515,7 +549,7 @@ class Gopay {
 		$this->set_uuidv4($params_uuid);
 		$this->headers['x-uniqueid'] = $this->uniqueId;
 		$this->headers['x-session-id'] = $this->sessionId;
-		
+		$this->headers['Idempotency-Key'] = $this->transfer_idempotency_key;
 			
 		
 		$headers = $this->get_authorized_headers($token);
@@ -540,21 +574,26 @@ class Gopay {
 		}
 		
 	}
-	public function transfer_set_bank_transfer(Array $input_params, String $token = '', $session_params = array()) {
-		$bankCode, $bankNumber, int $amount, $pin) {
-        self::setIdKey();
+	public function transfer_set_bank_transfer(String $token = '', $session_params = array(), Array $transfer_params = []) {
+		$params_uuid = [
+			'sessionId'				=> (isset($session_params['sessionId']) ? $session_params['sessionId'] : ''),
+			'uniqueId'				=> (isset($session_params['uniqueId']) ? $session_params['uniqueId'] : ''),
+		];
+		if (empty($params_uuid['sessionId']) || empty($params_uuid['uniqueId'])) {
+			return false;
+		}
+        $this->set_uuidv4($params_uuid);
+		$this->headers['x-uniqueid'] = $this->uniqueId;
+		$this->headers['x-session-id'] = $this->sessionId;
+		$this->headers['Idempotency-Key'] = $this->transfer_idempotency_key;
         
-		$bankAccountNames = $this->transfer_validate_bank($input_params, $token, $session_params);
-		$bankAccountName = '';
-		
-		
-        $payload         = array(
-            'account_name' 				=> $bankAccountName,
-            'account_number' 			=> sprintf("%s", $input_params['bankNumber']),
-            'amount' 					=> sprintf("%s", $input_params['amount']),
-            'bank_code' 				=> sprintf("%s", $input_params['bankCode']),
+		$transfer_params['transfer_params'] = array(
+            'account_name' 				=> sprintf("%s", $transfer_params['transfer_name']),
+            'account_number' 			=> sprintf("%s", $transfer_params['transfer_number']),
+            'amount' 					=> sprintf("%s", $transfer_params['transfer_amount']),
+            'bank_code' 				=> sprintf("%s", $transfer_params['transfer_bankcode']),
             'currency' 					=> 'IDR',
-            'pin' 						=> sprintf("%s", $input_params['pin']),
+            'pin' 						=> sprintf("%s", $transfer_params['transfer_pin']),
             'type' 						=> 'transfer'
         );
 		
@@ -568,7 +607,7 @@ class Gopay {
 		curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'POST');
 		curl_setopt($this->ch, CURLOPT_POST, TRUE);
 		curl_setopt($this->ch, CURLOPT_HTTPGET, FALSE);
-		curl_setopt($this->ch, CURLOPT_POSTFIELDS, json_encode($input_params['transfer_params'], JSON_NUMERIC_CHECK));
+		curl_setopt($this->ch, CURLOPT_POSTFIELDS, json_encode($transfer_params['transfer_params']));
 		
 		try {
 			$curl_collect = $this->curlexec();
@@ -702,6 +741,8 @@ class Gopay {
 	}
 	
 }
+
+
 
 
 
